@@ -2,4 +2,4 @@
 
 No idea what it's for yet, but I have some ideas
 
-Uses SFML v3.0.2-1
+Uses SFML v3.0.2-1 and builds with clang 20.1.8
