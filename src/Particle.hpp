@@ -11,8 +11,10 @@ class Particle {
         float radius;
         sf::Color color;
     public:
+        int id;
+        int version;
         bool enabled;
-        Particle(sf::Vector2f position, float radius, sf::Color color);
+        Particle(sf::Vector2f position, float radius, sf::Color color, int id);
         sf::Vector2f get_position();
         sf::Vector2f get_velocity();
         float get_radius();

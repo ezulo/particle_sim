@@ -2,12 +2,14 @@
 #include "Particle.hpp"
 #include <SFML/Graphics.hpp>
 
-Particle::Particle(sf::Vector2f position, float radius, sf::Color color) {
+Particle::Particle(sf::Vector2f position, float radius, sf::Color color, int id) {
+    this->id = id;
     this->position = position;
     this->radius = radius;
     this->color = color;
     this->velocity = sf::Vector2f(0.0f, 0.0f);
     this->enabled = true;
+    this->version = 0;
 }
 sf::Vector2f Particle::get_position() {
     return this->position;
@@ -27,6 +29,7 @@ void Particle::add_velocity(sf::Vector2f velocity_delta) {
 void Particle::update(float dt) {
     if (PARTICLE_DISABLE_STOP && !this->enabled) return;
     this->position += dt * this->velocity;
+    this->version++;
 }
 void Particle::disable() {
     this->enabled = false;
@@ -34,9 +37,11 @@ void Particle::disable() {
 void Particle::render(sf::RenderWindow* window) {
     if (PARTICLE_DISABLE_DISAPPEAR && !this->enabled) return;
     sf::CircleShape particle_shape(this->radius);
-    sf::Vector2f center_position = this->position-sf::Vector2f(this->radius, this->radius);
+    sf::Vector2f center_position = this->position - sf::Vector2f(
+            this->radius, this->radius);
     particle_shape.setPosition(center_position);
     particle_shape.setFillColor(this->color);
     window->draw(particle_shape);
+    this->version = 0;
 }
 

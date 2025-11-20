@@ -1,19 +1,16 @@
 #ifndef __PROJECTCONFIG_H__
 #define __PROJECTCONFIG_H__
 
-#define COLLISION_NONE -1.0
-#define COLLISION_ERR  -2.0
-
 #define PARTICLE_DISABLE_DISAPPEAR  0
 #define PARTICLE_DISABLE_STOP       1
 
 /* Resolution Options */
-#define FRAMERATE       60.0f 
+#define FRAMERATE       120.0f 
 #define WINDOW_SIZE_X   1000
 #define WINDOW_SIZE_Y   1000
 
 /* Initial speed max/min */
-#define V0_MAX 7.25f
+#define V0_MAX 3.125f
 
 /* Sim options */
 #define PARTICLE_RADIUS                     5.0f
