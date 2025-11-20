@@ -43,7 +43,7 @@ class ParticleSim {
          * @param p location of particle data to check
          * @return COLLISION_TRUE if any collisions occurred (*n_collisions > 0)
          */
-        collision_status_t check_for_collisions(uint32_t* n_collisions, Particle p);
+        collision_status_t check_for_collisions(uint32_t* n_collisions, Particle* p);
 
         /**
          * @brief Applies collision to particles.

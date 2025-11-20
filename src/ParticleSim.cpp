@@ -12,9 +12,9 @@ bool collision_is_valid(CollisionEvent event) {
     return true;
 }
 
-// TODO: implement
-collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Particle p) {
+collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Particle* p) {
     // TODO: Check for field edge collisions
+    this->field->detect_edge_collision(p, &this->collision_queue);
     // TODO: Check for particle collisions
     return COLLISION_ERR;
 }
@@ -67,7 +67,7 @@ p_sim_error_t ParticleSim::update() {
     this->t_delta = 0.0;
     uint32_t n_collisions;
     for (Particle p : this->particles) {
-        this->check_for_collisions(&n_collisions, p);
+        this->check_for_collisions(&n_collisions, &p);
     }
     p_sim_error_t res = this->process_collisions();
     if (ERR_OK != res) return res;
