@@ -3,9 +3,8 @@
 #include <vector>
 #include <queue>
 
-#include "Particle.hpp"
-#include "ParticleFieldCircular.hpp"
 #include "ParticleSim.hpp"
+#include "ParticleFieldCircular.hpp"
 #include "config.h"
 #include "p_sim_error.h"
 

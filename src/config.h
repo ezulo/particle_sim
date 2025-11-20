@@ -22,8 +22,5 @@
 #define PARTICLE_FIELD_OUTLINE_THICKNESS    3.0f
 #define PARTICLE_FIELD_RADIUS               400.0f
 
-/* Util */
-float rand_float(float min, float max);
-
 #endif
 

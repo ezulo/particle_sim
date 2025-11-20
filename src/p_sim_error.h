@@ -1,21 +1,14 @@
 #ifndef __ERROR_H__
 #define __ERROR_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef int32_t p_sim_error_t;
-const int ERR_OK = 0;
-const int ERR_FAIL = -1;
 
-const int ERR_NULL_PTR = 0x101;
-const int ERR_INVALID_STATE = 0x102;
-
-const int ERR_COLLISION_CHECK_FAIL = 0x201;
-
-#ifdef __cplusplus
-}
-#endif
+#define ERR_OK                      0x000
+#define ERR_FAIL                    0x100
+#define ERR_NULL_PTR                0x101
+#define ERR_INVALID_STATE           0x102
+#define ERR_NOT_IMPLEMENTED         0xFFF
+#define ERR_NO_MEMORY               0x103
+#define ERR_COLLISION_CHECK_FAIL    0x201
 
 #endif

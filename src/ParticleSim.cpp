@@ -1,9 +1,38 @@
 #include "ParticleSim.hpp"
 
-#define STATE_INIT          0
-#define STATE_READY         1
-#define STATE_RUNNING       2
-#define STATE_FINISHED      3
+/**
+* @brief helper functon to determine validity of event
+* @param event CollisionEvent object
+* @return true if valid, false if not
+*/
+bool collision_is_valid(CollisionEvent event) {
+    if (NULL == event.particle_i || NULL == event.particle_j) return false;
+    if (event.version_i < event.particle_i->version) return false;
+    if (event.version_j < event.particle_j->version) return false;
+    return true;
+}
+
+// TODO: implement
+collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Particle p) {
+    // TODO: Check for field edge collisions
+    // TODO: Check for particle collisions
+    return COLLISION_ERR;
+}
+
+// TODO: implement
+collision_status_t ParticleSim::collide(CollisionEvent* event) {
+    if (NULL == event) return COLLISION_ERR;
+    if (!collision_is_valid(*event)) return COLLISION_FALSE;
+    // TODO: Update particle velocities, positions, and versions
+    return COLLISION_ERR;
+}
+
+// TODO: implement
+p_sim_error_t ParticleSim::process_collisions() {
+    if (STATE_RUNNING != this->state) return ERR_INVALID_STATE;
+    // TODO: Call `collide()` on all collision events in queue
+    return ERR_NOT_IMPLEMENTED;
+}
 
 ParticleSim::ParticleSim(uint32_t n): n_particles(n) {
     this->state = STATE_INIT;
@@ -35,11 +64,13 @@ p_sim_error_t ParticleSim::begin() {
 
 p_sim_error_t ParticleSim::update() {
     if (this->state != STATE_RUNNING) return ERR_INVALID_STATE;
-    for (uint32_t i = 0; i < this->n_particles; i++) {
-        Particle p = this->particles[i];
-        this->field->detect_edge_collision(&p, &this->collision_queue);
-        this->particles[i] = p;
+    this->t_delta = 0.0;
+    uint32_t n_collisions;
+    for (Particle p : this->particles) {
+        this->check_for_collisions(&n_collisions, p);
     }
+    p_sim_error_t res = this->process_collisions();
+    if (ERR_OK != res) return res;
     return ERR_OK;
 }
 
