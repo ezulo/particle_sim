@@ -20,7 +20,7 @@ class Particle {
         float get_radius();
         void set_velocity(sf::Vector2f v);
         void add_velocity(sf::Vector2f v);
-        void update(float dt);
+        void advance(float dt);
         void disable();
         void render(sf::RenderWindow* window);
 };

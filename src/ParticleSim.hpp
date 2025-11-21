@@ -1,14 +1,23 @@
 #ifndef __PARTICLESIM_HPP__
 #define __PARTICLESIM_HPP__
 
-#include <cmath>
 #include <stdint.h>
 #include <SFML/Graphics.hpp>
 
 typedef int32_t collision_status_t;
-#define COLLISION_TRUE   1
-#define COLLISION_FALSE  0
-#define COLLISION_ERR    -1
+#define COLLISION_TRUE                  1
+#define COLLISION_FALSE                 0
+#define COLLISION_ERR                   -1
+
+typedef int32_t collision_event_valid_t;
+#define VALID                 1
+#define INVALID               0
+#define INVALID_NULL_PTR_I    -2
+#define INVALID_NULL_PTR_J    -3
+#define INVALID_VER_I         -4
+#define INVALID_VER_J         -5
+#define INVALID_TIME_PASSED   -6
+#define INVALID_TIME_OVERFLOW -7
 
 typedef uint8_t sim_state_t;
 #define STATE_INIT          0
@@ -29,11 +38,34 @@ class ParticleSim {
     private:
         uint32_t n_particles;
         ParticleField* field;
-        std::vector<Particle> particles;
+        std::vector<Particle*> particles;
         CollisionQueue collision_queue;
         sf::Vector2f origin;
         sim_state_t state;
-        float t_delta;
+        float t_now;
+
+        /**
+         * @brief Checks validity of collision events against simulation state.
+         * @param event collision event
+         */
+        collision_event_valid_t collision_is_valid(CollisionEvent event);
+
+        /**
+         * @brief Advances time (t_now) by specified delta
+         * @param t_delta the amount of time to advance (t_now + t_delta <= 1.0)
+         * @return ERR_OK if successful
+         */
+        p_sim_error_t advance_time(float t_delta);
+
+        /**
+        * @brief helper function to find time of collision (if any) between 2 particles)
+        * @param t_coll address of where to write collision time
+        * @param p_i the first particle
+        * @param p_j the second particle
+        * @return COLLISION_TRUE if collided (collision time at *t_coll), COLLISION_FALSE if not
+        */
+        collision_status_t time_of_particle_collision(float* t_coll, Particle* p_i, Particle* p_j);
+
         /**
          * @brief Checks particle for collision against other particles, and field boundaries.
          *
@@ -55,9 +87,10 @@ class ParticleSim {
          * against field boundaries and other particles, and any further collisions should be
          * appended to `collision_queue`.`
          *
+         * @param event the colision event
          * @return COLLISION_TRUE if valid. COLLISION_FALSE if not.
          */
-        collision_status_t collide(CollisionEvent* event);
+        collision_status_t collide(CollisionEvent event);
 
         /**
          * @brief Process collisions in CollisionQueue for timestep t0 -> t1

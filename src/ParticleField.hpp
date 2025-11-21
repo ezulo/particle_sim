@@ -18,15 +18,16 @@ class ParticleField {
          * @param n_particles Number of particles to create
          * @return ERR_OK if successful.
          */
-        virtual p_sim_error_t init(std::vector<Particle> p_list, uint32_t n_particles) = 0;
+        virtual p_sim_error_t init(std::vector<Particle*>* p_list, uint32_t n_particles) = 0;
         /*
          * @brief Abstract function to detect collisions with the field edge from t0 -> t1
          *
+         * @param t_now current time
          * @param p Particle to check
          * @param pq Collision event queue to push to.
          * @return ERR_OK if check was successful (does not imply a collision)
          */
-        virtual p_sim_error_t detect_edge_collision(Particle* p, CollisionQueue* pq) = 0;
+        virtual p_sim_error_t detect_edge_collision(float t_now, Particle* p, CollisionQueue* pq) = 0;
         /*
          * @brief Abstract function to render the particle field (mainly its boundary)
          * @param window SFML window reference

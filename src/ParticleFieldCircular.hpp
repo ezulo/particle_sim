@@ -19,15 +19,23 @@ class ParticleFieldCircular : public ParticleField {
         sf::Vector2f position;
         std::vector<Particle*> virtual_particles;
         float radius;
+
+        /**
+         * @brief Calculates v_delta on collision of a particle with the field edge
+         * @param p pointer to particle
+         */
+        sf::Vector2f edge_collision_v_delta(Particle* p);
+
         /**
          * @brief Calculates the time (with respect to simulation timestep) of a particle's
          * collision with the particle field boundary.
          *
+         * @ param t_max maximum t_coll value
          * @ param t_coll where to store collision t_delta (if collision, 0.0 <= *t_coll < 1.0)
          * @ param p pointer to the particle in question
          * @ return ERR_OK for success. t_coll == 1.0 if no collision occurred.
          */
-        p_sim_error_t time_of_edge_collision(float* t_coll, Particle* p);
+        p_sim_error_t time_of_edge_collision(float t_max, float* t_coll, Particle* p);
 
         /**
          * @brief Creates a "particle" reflected along collision tangent, to process collision
@@ -37,7 +45,7 @@ class ParticleFieldCircular : public ParticleField {
          * @param p reference particle to reflect along field edge.
          * @return Pointer to new virtual particle, otherwise NULL if failed
          */
-        Particle* create_virtual_particle(Particle* p);
+        //Particle* create_virtual_particle(Particle* p);
 
     public:
 
@@ -52,8 +60,8 @@ class ParticleFieldCircular : public ParticleField {
         ParticleFieldCircular(sf::Vector2f position, float radius, sf::Color);
 
         /** Abstract function overrides **/
-        p_sim_error_t init(std::vector<Particle> p_list, uint32_t n_particles) override;
-        p_sim_error_t detect_edge_collision(Particle* p, CollisionQueue* pq) override;
+        p_sim_error_t init(std::vector<Particle*>* p_list, uint32_t n_particles) override;
+        p_sim_error_t detect_edge_collision(float t_now, Particle* p, CollisionQueue* pq) override;
         p_sim_error_t render(sf::RenderWindow* window) override;
         p_sim_error_t flush_state() override;
 

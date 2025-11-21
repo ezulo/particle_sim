@@ -2,11 +2,14 @@
 #include <cmath>
 #include <vector>
 #include <queue>
+#include <stdio.h>
 
 #include "ParticleSim.hpp"
 #include "ParticleFieldCircular.hpp"
 #include "config.h"
 #include "p_sim_error.h"
+
+using namespace std;
 
 int main()
 {
@@ -20,7 +23,13 @@ int main()
         sf::Color::White
     );
     sim.assign_field((ParticleField*)&field);
-    sim.begin();
+    printf("Hello world\n");
+    if (ERR_OK != sim.begin()) {
+        printf("Failure beginning sim.\n");
+        return 1;
+    }
+    printf("Sim has begun\n");
+    uint32_t timestep = 0;
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -29,8 +38,15 @@ int main()
                 window.close();
         }
         window.clear();
-        sim.update();
-        sim.render(&window);
+        if (ERR_OK != sim.update()) {
+            printf("Updating failure\n");
+            return 1;
+        }
+        if (ERR_OK != sim.render(&window)) {
+            printf("Rendering failure\n");
+            return 1;
+        }
         window.display();
+        if (timestep == 200) break;
     }
 }

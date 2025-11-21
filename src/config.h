@@ -10,17 +10,19 @@
 #define WINDOW_SIZE_Y   1000
 
 /* Initial speed max/min */
-#define V0_MAX 3.125f
+#define V0_MAX 10.0f
 
 /* Sim options */
-#define PARTICLE_RADIUS                     5.0f
+#define PARTICLE_RADIUS                     1.5f
 #define PARTICLE_COLOR                      sf::Color::Red
-#define PARTICLE_QUANTITY                   300
+#define PARTICLE_QUANTITY                   800
 #define PARTICLE_TRACER                     7
 #define PARTICLE_FIELD_CENTER_X             500.0f
 #define PARTICLE_FIELD_CENTER_Y             500.0f
-#define PARTICLE_FIELD_OUTLINE_THICKNESS    3.0f
+#define PARTICLE_FIELD_OUTLINE_THICKNESS    1.0f
 #define PARTICLE_FIELD_RADIUS               400.0f
+
+#define DEBUG 1
 
 #endif
 

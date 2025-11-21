@@ -1,6 +1,7 @@
 #include "config.h"
 #include "Particle.hpp"
 #include <SFML/Graphics.hpp>
+#include <stdio.h>
 
 Particle::Particle(sf::Vector2f position, float radius, sf::Color color, int id) {
     this->id = id;
@@ -26,17 +27,16 @@ void Particle::set_velocity(sf::Vector2f v) {
 void Particle::add_velocity(sf::Vector2f velocity_delta) {
     this->velocity += velocity_delta;
 }
-void Particle::update(float dt) {
+void Particle::advance(float dt) {
     if (PARTICLE_DISABLE_STOP && !this->enabled) return;
     this->position += dt * this->velocity;
-    this->version++;
 }
 void Particle::disable() {
     this->enabled = false;
 }
 void Particle::render(sf::RenderWindow* window) {
     if (PARTICLE_DISABLE_DISAPPEAR && !this->enabled) return;
-    sf::CircleShape particle_shape(this->radius);
+    sf::CircleShape particle_shape(this->radius, 100);
     sf::Vector2f center_position = this->position - sf::Vector2f(
             this->radius, this->radius);
     particle_shape.setPosition(center_position);
