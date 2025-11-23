@@ -5,20 +5,21 @@
 #include <stdio.h>
 #endif
 
-collision_event_valid_t ParticleSim::collision_is_valid(CollisionEvent event) {
-    if (NULL == event.particle_i) return INVALID_NULL_PTR_I;
-    if (event.version_i < event.particle_i->version) {
-        return INVALID_VER_I;
-    }
+bool ParticleSim::collision_is_valid(CollisionEvent event) {
+    if (NULL == event.particle_i) return false;
+    if (event.version_i < event.particle_i->version) return false;
+    if (this->t_now > event.time) return false;
+    if (this->t_now + event.time > 1.0) return false;
     if (event.type == CollisionType::PARTICLE) {
-        if (NULL == event.particle_j) return INVALID_NULL_PTR_J;
-        if (event.version_j < event.particle_j->version) return INVALID_VER_J;
+        if (NULL == event.particle_j) return false;
+        if (event.version_j < event.particle_j->version) return false;
     }
-    if (this->t_now > event.time) return INVALID_TIME_PASSED;
-    if (this->t_now + event.time > 1.0) {
-        return INVALID_TIME_OVERFLOW;
+    if (event.type == CollisionType::EDGE) {
+        sf::Vector2f v_delta = event.v_delta;
+        float mag = std::sqrt((v_delta.x * v_delta.x) + (v_delta.y * v_delta.y));
+        if (std::abs(mag) < EPS) return false;
     }
-    return VALID;
+    return true;
 }
 
 p_sim_error_t ParticleSim::advance_time(float t_delta) {
@@ -70,18 +71,30 @@ collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Par
     if (NULL == n_collisions) n_collisions = &backup_n_collisions;
     *n_collisions = 0;
     size_t queue_size = this->collision_queue.size();
-    this->field->detect_edge_collision(this->t_now, p, &this->collision_queue);
-    // TODO: test edge collision first, then particle-on-particle
-    collision_status_t res;
+    p_sim_error_t detect_res = this->field->detect_edge_collision(this->t_now, p, &this->collision_queue);
+    if (ERR_OK != detect_res) return COLLISION_ERR; 
+    *n_collisions = this->collision_queue.size() - queue_size;
     float t_coll;
     for (Particle* o : this->particles) {
         if (p->id <= o->id) continue;
-        res = time_of_particle_collision(&t_coll, p, o);
-        if (COLLISION_ERR == res) return COLLISION_ERR;
-        if (COLLISION_TRUE == res) {
-            *n_collisions += 1;
-            this->collision_queue.register_particle_collision(t_coll, p, o);
+        collision_status_t res = time_of_particle_collision(&t_coll, p, o);
+        switch (res) {
+            case COLLISION_ERR:
+                return COLLISION_ERR;;
+                break;
+            case COLLISION_FALSE:
+                continue;
+                break;
+            case COLLISION_TRUE:
+                *n_collisions += 1;
+//#ifdef DEBUG
+//                printf("Registering particle collision ( %d %d)\n", p->id, o->id);
+//#endif
+                this->collision_queue.register_particle_collision(t_coll, p, o);
+                break;
+                
         }
+        return COLLISION_ERR;
     }
     *n_collisions += (uint32_t)(this->collision_queue.size() - queue_size);
     return *n_collisions > 0 ? COLLISION_TRUE : COLLISION_FALSE;
@@ -89,10 +102,7 @@ collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Par
 
 // TODO: handle race condition of overlapping particles
 collision_status_t ParticleSim::collide(CollisionEvent event) {
-    collision_event_valid_t valid_res = collision_is_valid(event);
-    if (VALID != valid_res) {
-        return COLLISION_FALSE;
-    }
+    if (!collision_is_valid(event)) return COLLISION_FALSE;
     Particle* p_i = event.particle_i;
     Particle* p_j = event.particle_j;
     float collision_time = event.time;
@@ -103,7 +113,7 @@ collision_status_t ParticleSim::collide(CollisionEvent event) {
             p_i->advance(t_delta);
             p_i->add_velocity(event.v_delta);
             p_i->version++;
-            //printf("Edge collision (%d)\n", p_i->id);
+            return COLLISION_TRUE;
             break;
         case CollisionType::PARTICLE:
             this->advance_time(t_delta);
@@ -112,33 +122,64 @@ collision_status_t ParticleSim::collide(CollisionEvent event) {
             // resolve elastic collision
             sf::Vector2f dp = p_i->get_position() - p_j->get_position();
             float dp_length = std::sqrt(dp.x * dp.x + dp.y * dp.y);
-            sf::Vector2f dp_normal = sf::Vector2f(dp.x / dp_length, dp.y / dp_length);
+            sf::Vector2f n = sf::Vector2f(dp.x / dp_length, dp.y / dp_length);
             sf::Vector2f dv = p_i->get_velocity() - p_j->get_velocity();
-            float dv_dot = (dv.x * dp_normal.x + dv.y * dp_normal.y);
-            if (dv_dot > 0) return COLLISION_FALSE;
-            float impulse = 2.0 * dv_dot / 2.0; // assuming equal mass
-            p_i->add_velocity(-1.0f * dp_normal * impulse);
+            float dv_dot_n = (dv.x * n.x + dv.y * n.y);
+            if (dv_dot_n >= 0.0f) return COLLISION_FALSE;
+            float m_i = p_i->get_mass();
+            float m_j = p_j->get_mass();
+            float inv_mass_sum = 1.0f / (m_i + m_j);
+            float elastic_c = 0.992f;
+            float impulse_magnitude = -(1.0f + elastic_c) * dv_dot_n * inv_mass_sum;
+            sf::Vector2f impulse = n * impulse_magnitude;
+#ifdef DEBUG
+            // check for conservation of momentum
+            sf::Vector2f v_i, v_j, mom_0, mom_1, mom_diff;
+            v_i = p_i->get_velocity();
+            v_j = p_j->get_velocity();
+            mom_0 = v_i * p_i->get_mass() + v_j * p_j->get_mass();
+#endif
+            p_i->add_velocity(impulse * m_j);
+            p_j->add_velocity(-impulse * m_i);
+            // After impulse application
+            const float total_r = p_i->get_radius() + p_j->get_radius();
+            const float penetration = total_r - dp_length + 0.001f;
+            if (penetration > 0.0f) {
+                const float correction_factor = 0.8f;  // 80% fix per collision
+                sf::Vector2f correction = n * (penetration * correction_factor * inv_mass_sum);
+                p_i->set_position(p_i->get_position() + correction * m_j);
+                p_j->set_position(p_j->get_position() - correction * m_i);
+            }
+#ifdef DEBUG
+            v_i = p_i->get_velocity();
+            v_j = p_j->get_velocity();
+            mom_1 = v_i * p_i->get_mass() + v_j * p_j->get_mass();
+            mom_diff = mom_1 - mom_0;
+            float mom_error = std::hypot(mom_diff.x, mom_diff.y);
+            if (mom_error > 0.001) {
+                printf("Momentum changed by: %0.6f\n", mom_error);
+            }
+#endif
             p_i->version++;
-            p_j->add_velocity(1.0f * dp_normal * impulse);
             p_j->version++;
-            //printf("Particle collision (%d -- %d)\n", p_i->id, p_j->id);
+            return COLLISION_TRUE;
             break;
     }
-    return COLLISION_TRUE;
+    return COLLISION_ERR;
 }
 
 p_sim_error_t ParticleSim::process_collisions() {
     if (STATE_RUNNING != this->state) return ERR_INVALID_STATE;
-    CollisionEvent event;
-    while (!this->collision_queue.empty()) {
-        event = collision_queue.pop();
-        collision_status_t res = this->collide(event);
-        if (COLLISION_TRUE == collide(event)) {
-            this->check_for_collisions(NULL, event.particle_i);
-            if (CollisionType::PARTICLE == event.type) {
-                this->check_for_collisions(NULL, event.particle_j);
+    CollisionEvent* event;
+    while (NULL != (event = this->collision_queue.pop())) {
+        collision_status_t res = this->collide(*event);
+        if (COLLISION_TRUE == res) {
+            this->check_for_collisions(NULL, event->particle_i);
+            if (CollisionType::PARTICLE == event->type) {
+                this->check_for_collisions(NULL, event->particle_j);
             }
         }
+        free(event);
     }
     return ERR_OK;
 }
@@ -174,6 +215,8 @@ p_sim_error_t ParticleSim::begin() {
 
 p_sim_error_t ParticleSim::update() {
     if (this->state != STATE_RUNNING) return ERR_INVALID_STATE;
+    float v_max = 0.0f;
+    sf::Vector2f momentum;
     this->t_now = 0.0;
     for (Particle* p : this->particles) p->version = 0;
     uint32_t n_collisions;
@@ -182,6 +225,19 @@ p_sim_error_t ParticleSim::update() {
     if (ERR_OK != res) return res;
     for (Particle* p : this->particles) p->advance(1.0 - this->t_now);
     this->advance_time(1.0 - this->t_now); // not strictly necessary, but "correct"
+#ifdef DEBUG
+    float v_sum = 0.0f;
+    for (Particle* p : this->particles) {
+        sf::Vector2f v = p->get_velocity();
+        float v_mag = std::hypot(v.x, v.y);
+        v_max = v_mag > v_max ? v_mag : v_max;
+        v_sum += v_mag;
+        momentum += v * p->get_mass() / (float)PARTICLE_QUANTITY;
+    }
+    printf("v_max: %0.3f\n", v_max);
+    printf("v_avg: %0.3f\n", v_sum / (float)PARTICLE_QUANTITY);
+    printf("momentum magnitude: %0.3f\n", std::hypot(momentum.x, momentum.y));
+#endif
     return ERR_OK;
 }
 

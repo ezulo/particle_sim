@@ -30,8 +30,12 @@ int main()
     }
     printf("Sim has begun\n");
     uint32_t timestep = 0;
+    const uint32_t TIMESTEP_EXIT = UINT32_MAX;
     while (window.isOpen())
     {
+#ifdef DEBUG
+        printf("----------\nTimestep %d\n----------\n", timestep++);
+#endif
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -39,14 +43,21 @@ int main()
         }
         window.clear();
         if (ERR_OK != sim.update()) {
+#ifdef DEBUG
             printf("Updating failure\n");
+#endif
             return 1;
         }
         if (ERR_OK != sim.render(&window)) {
+#ifdef DEBUG
             printf("Rendering failure\n");
+#endif
             return 1;
         }
         window.display();
-        if (timestep == 200) break;
+#ifdef DEBUG
+        printf("Done.\n----------\n");
+#endif
+        if (timestep - 1 == TIMESTEP_EXIT) break;
     }
 }

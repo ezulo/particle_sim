@@ -4,27 +4,6 @@
 #include <stdint.h>
 #include <SFML/Graphics.hpp>
 
-typedef int32_t collision_status_t;
-#define COLLISION_TRUE                  1
-#define COLLISION_FALSE                 0
-#define COLLISION_ERR                   -1
-
-typedef int32_t collision_event_valid_t;
-#define VALID                 1
-#define INVALID               0
-#define INVALID_NULL_PTR_I    -2
-#define INVALID_NULL_PTR_J    -3
-#define INVALID_VER_I         -4
-#define INVALID_VER_J         -5
-#define INVALID_TIME_PASSED   -6
-#define INVALID_TIME_OVERFLOW -7
-
-typedef uint8_t sim_state_t;
-#define STATE_INIT          0
-#define STATE_READY         1
-#define STATE_RUNNING       2
-#define STATE_FINISHED      3
-
 #include "CollisionQueue.hpp"
 #include "Particle.hpp"
 #include "ParticleField.hpp"
@@ -48,7 +27,7 @@ class ParticleSim {
          * @brief Checks validity of collision events against simulation state.
          * @param event collision event
          */
-        collision_event_valid_t collision_is_valid(CollisionEvent event);
+        bool collision_is_valid(CollisionEvent event);
 
         /**
          * @brief Advances time (t_now) by specified delta

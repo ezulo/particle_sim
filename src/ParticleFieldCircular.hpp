@@ -22,9 +22,10 @@ class ParticleFieldCircular : public ParticleField {
 
         /**
          * @brief Calculates v_delta on collision of a particle with the field edge
-         * @param p pointer to particle
+         * @param p particle reference
+         * @param t_coll time of collision (needed for proper calculation)
          */
-        sf::Vector2f edge_collision_v_delta(Particle* p);
+        sf::Vector2f edge_collision_v_delta(Particle p, float t_coll);
 
         /**
          * @brief Calculates the time (with respect to simulation timestep) of a particle's
@@ -33,19 +34,9 @@ class ParticleFieldCircular : public ParticleField {
          * @ param t_max maximum t_coll value
          * @ param t_coll where to store collision t_delta (if collision, 0.0 <= *t_coll < 1.0)
          * @ param p pointer to the particle in question
-         * @ return ERR_OK for success. t_coll == 1.0 if no collision occurred.
+         * @ return COLLISION_TRUE if collided, COLLISION_FALSE if not, COLLISON_ERR for error
          */
-        p_sim_error_t time_of_edge_collision(float t_max, float* t_coll, Particle* p);
-
-        /**
-         * @brief Creates a "particle" reflected along collision tangent, to process collision
-         * against the field edge. This way, our sim can treat collisions with the field edge as
-         * any other collision with a particle. This particle is not to be rendered.
-         *
-         * @param p reference particle to reflect along field edge.
-         * @return Pointer to new virtual particle, otherwise NULL if failed
-         */
-        //Particle* create_virtual_particle(Particle* p);
+        collision_status_t time_of_edge_collision(float t_max, float* t_coll, Particle* p);
 
     public:
 

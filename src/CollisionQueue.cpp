@@ -5,6 +5,7 @@ const sf::Vector2f v_delta_nil(0.0f, 0.0f);
 p_sim_error_t CollisionQueue::register_edge_collision(
         float time, Particle* p, sf::Vector2f v_delta) {
     if (NULL == p) return ERR_NULL_PTR;
+    p->edge_collision_time = time;
     this->data.push({ time, CollisionType::EDGE, v_delta, p, NULL, p->version, -1 });
     return ERR_OK;
 }
@@ -19,14 +20,17 @@ p_sim_error_t CollisionQueue::register_particle_collision(float time, Particle* 
     return ERR_OK;
 }
 
-CollisionEvent CollisionQueue::pop() {
-    CollisionEvent ret = this->data.top();
-    this->data.pop();
+CollisionEvent* CollisionQueue::pop() {
+    if (this->data.empty()) return NULL;
+    CollisionEvent* ret;
+    try {
+        ret = (CollisionEvent*)malloc(sizeof(CollisionEvent));
+        *ret = this->data.top();
+        this->data.pop();
+    } catch (...) {
+        return NULL;
+    }
     return ret;
-}
-
-bool CollisionQueue::empty() {
-    return this->data.empty();
 }
 
 size_t CollisionQueue::size() {

@@ -77,15 +77,9 @@ class CollisionQueue {
         /**
          * @brief retrieves soonest registered CollisionEvent in the timestep.
          * Retrieves and removes the soonest CollisionEvent from the queue.
-         * @return Soonest collision event object
+         * @return Pointer to collision event, or NULL
          */
-        CollisionEvent pop();
-
-        /**
-         * @brief returns whether data is empty
-         * @return true if empty
-         */
-        bool empty();
+        CollisionEvent* pop();
 
         /**
          * @brief returns current queue size
