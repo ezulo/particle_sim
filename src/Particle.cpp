@@ -6,6 +6,7 @@
 void Particle::reset() {
     this->version = 0;
     this->edge_collision_time = -1.0f;
+    this->t_current = 0.0f;
 }
 
 Particle::Particle(sf::Vector2f position, float radius, sf::Color color, int id) {
@@ -18,6 +19,7 @@ Particle::Particle(sf::Vector2f position, float radius, sf::Color color, int id)
     this->enabled = true;
     this->version = 0;
     this->edge_collision_time = -1.0f;
+    this->t_current = 0.0f;
 }
 sf::Vector2f Particle::get_position() {
     return this->position;
@@ -43,6 +45,7 @@ void Particle::add_velocity(sf::Vector2f velocity_delta) {
 void Particle::advance(float dt) {
     if (PARTICLE_DISABLE_STOP && !this->enabled) return;
     this->position += dt * this->velocity;
+    this->t_current += dt;
 }
 void Particle::disable() {
     this->enabled = false;

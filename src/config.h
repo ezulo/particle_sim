@@ -14,10 +14,10 @@
 #define N_EPS        -1e-6f
 
 /* Initial speed max/min */
-#define V0_MAX 15.0f
+#define V0_MAX 7.0f
 
 /* Sim options */
-#define PARTICLE_RADIUS_MIN                 5.0f
+#define PARTICLE_RADIUS_MIN                 10.0f
 #define PARTICLE_RADIUS_MAX                 10.0f
 #define PARTICLE_COLOR                      sf::Color::Blue
 #define PARTICLE_QUANTITY                   200

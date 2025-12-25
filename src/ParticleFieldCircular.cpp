@@ -18,10 +18,10 @@ static float rand_float(float min, float max) {
 
 sf::Vector2f ParticleFieldCircular::edge_collision_v_delta(Particle p_1, float t_coll) {
     p_1.advance(t_coll);
-    float effective_R = this->radius - p_1.get_radius();
     sf::Vector2f V = p_1.get_velocity();
     sf::Vector2f P = p_1.get_position() - this->position;
-    sf::Vector2f N = P / effective_R;
+    float P_length = std::sqrt(P.x * P.x + P.y * P.y);
+    sf::Vector2f N = P / P_length;
     float dot = V.x * N.x + V.y * N.y;
     return -N * (2.0f * dot);
 }
