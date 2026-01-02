@@ -12,6 +12,7 @@ class Particle {
         float mass;
         sf::Color color;
         void reset();
+        sf::Color speed_color();
     public:
         int id;
         int version;
@@ -22,8 +23,11 @@ class Particle {
         sf::Vector2f get_position();
         void set_position(sf::Vector2f position);
         sf::Vector2f get_velocity();
+        float get_speed();
         float get_radius();
         float get_mass();
+        sf::Vector2f get_momentum();
+        sf::Color get_color();
         void set_velocity(sf::Vector2f v);
         void add_velocity(sf::Vector2f v);
         void advance(float dt);

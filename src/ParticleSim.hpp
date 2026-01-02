@@ -7,6 +7,7 @@
 #include "CollisionQueue.hpp"
 #include "Particle.hpp"
 #include "ParticleField.hpp"
+#include "ParticleTracer.hpp"
 #include "config.h"
 #include "p_sim_error.h"
 
@@ -18,6 +19,7 @@ class ParticleSim {
         uint32_t n_particles;
         ParticleField* field;
         std::vector<Particle*> particles;
+        std::vector<ParticleTracer> tracers;
         CollisionQueue collision_queue;
         sf::Vector2f origin;
         sim_state_t state;
@@ -81,6 +83,13 @@ class ParticleSim {
          * @return ERR_OK if successful
          */
         p_sim_error_t process_collisions();
+
+        /**
+         * @brief creates a tracer of a particle
+         *
+         * @return ERR_OK if successful
+         */
+        p_sim_error_t make_tracer(Particle* p);
 
     public:
         /**

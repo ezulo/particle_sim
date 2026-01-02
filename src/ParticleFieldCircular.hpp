@@ -5,8 +5,8 @@
 #include "CollisionQueue.hpp"
 #include "Particle.hpp"
 #include "ParticleField.hpp"
-#include "config.h"
 #include "p_sim_error.h"
+#include "config.h"
 
 typedef int32_t edge_collision_res_t;
 

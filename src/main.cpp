@@ -1,7 +1,4 @@
 #include <stdint.h>
-#include <cmath>
-#include <vector>
-#include <queue>
 #include <stdio.h>
 
 #include "ParticleSim.hpp"
@@ -55,9 +52,6 @@ int main()
             return 1;
         }
         window.display();
-#ifdef DEBUG
-        printf("Done.\n----------\n");
-#endif
         if (timestep - 1 == TIMESTEP_EXIT) break;
     }
 }

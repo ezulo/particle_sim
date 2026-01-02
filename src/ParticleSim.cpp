@@ -97,7 +97,6 @@ collision_status_t ParticleSim::check_for_collisions(uint32_t* n_collisions, Par
     return *n_collisions > 0 ? COLLISION_TRUE : COLLISION_FALSE;
 }
 
-// TODO: handle race condition of overlapping particles
 collision_status_t ParticleSim::collide(CollisionEvent event) {
     if (!collision_is_valid(event)) return COLLISION_FALSE;
     Particle* p_i = event.particle_i;
@@ -136,7 +135,7 @@ collision_status_t ParticleSim::collide(CollisionEvent event) {
             float m_i = p_i->get_mass();
             float m_j = p_j->get_mass();
             float inv_mass_sum = 1.0f / (m_i + m_j);
-            float elastic_c = 1.0f;
+            float elastic_c = PARTICLE_ELASTIC_COEFF;
             float impulse_magnitude = -(1.0f + elastic_c) * dv_dot_n * inv_mass_sum;
             sf::Vector2f impulse = n * impulse_magnitude;
 #ifdef DEBUG
@@ -191,6 +190,12 @@ p_sim_error_t ParticleSim::process_collisions() {
     return ERR_OK;
 }
 
+p_sim_error_t ParticleSim::make_tracer(Particle* p) {
+    ParticleTracer pt(p, PARTICLE_TRACER);
+    this->tracers.push_back(pt);
+    return ERR_OK;
+}
+
 ParticleSim::ParticleSim(uint32_t n): n_particles(n) {
     this->state = STATE_INIT;
     this->origin = sf::Vector2f(PARTICLE_FIELD_CENTER_X, PARTICLE_FIELD_CENTER_Y);
@@ -223,7 +228,6 @@ p_sim_error_t ParticleSim::begin() {
 p_sim_error_t ParticleSim::update() {
     if (this->state != STATE_RUNNING) return ERR_INVALID_STATE;
     float v_max = 0.0f;
-    sf::Vector2f momentum;
     this->t_now = 0.0;
     for (Particle* p : this->particles) {
         p->version = 0;
@@ -237,16 +241,18 @@ p_sim_error_t ParticleSim::update() {
     this->advance_time(1.0 - this->t_now); // not strictly necessary, but "correct"
 #ifdef DEBUG
     float v_sum = 0.0f;
+    float kinetic_energy = 0.0f;
     for (Particle* p : this->particles) {
         sf::Vector2f v = p->get_velocity();
-        float v_mag = std::hypot(v.x, v.y);
+        float v_sq = v.x * v.x + v.y * v.y;
+        float v_mag = std::sqrt(v_sq);
         v_max = v_mag > v_max ? v_mag : v_max;
         v_sum += v_mag;
-        momentum += v * p->get_mass() / (float)PARTICLE_QUANTITY;
+        kinetic_energy += 0.5f * p->get_mass() * v_sq;
     }
     printf("v_max: %0.3f\n", v_max);
     printf("v_avg: %0.3f\n", v_sum / (float)PARTICLE_QUANTITY);
-    printf("momentum magnitude: %0.3f\n", std::hypot(momentum.x, momentum.y));
+    printf("total kinetic energy: %0.3f\n", kinetic_energy);
 #endif
     return ERR_OK;
 }
@@ -254,6 +260,14 @@ p_sim_error_t ParticleSim::update() {
 p_sim_error_t ParticleSim::render(sf::RenderWindow* window) {
     for (Particle* p: this->particles) {
         p->render(window);
+        this->make_tracer(p);
+    }
+    printf("tracers: %ld\n", this->tracers.size());
+    for (size_t i = 0; i < this->tracers.size(); i++) {
+        ParticleTracer* pt = &this->tracers.at(i);
+        if (!pt->render(window)) {
+            this->tracers.erase(tracers.begin() + i);
+        }
     }
     if (ERR_OK != this->field->render(window)) {
         return ERR_FAIL;
