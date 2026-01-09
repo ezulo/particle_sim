@@ -1,27 +1,51 @@
-CC := clang++
+CXX := clang++
 SRC_DIR := src
 BUILD_DIR := target
 INCLUDE_DIR := include
-LIB_DIR := lib
-EXEC := run
 
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS := $(addprefix $(BUILD_DIR)/,$(patsubst $(SRC_DIR)/%.cpp,%.o,$(SRCS)))
-LINK_SFML := -lsfml-graphics -lsfml-window -lsfml-system
-CC_FLAGS := -Wall -Wextra -I$(INCLUDE_DIR) $(LINK_SFML)
 
-all: $(EXEC)
+# Serial build
+OBJS_SERIAL := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/serial/%.o,$(SRCS))
+DEPS_SERIAL := $(OBJS_SERIAL:.o=.d)
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+# OpenMP build
+OBJS_OPENMP := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/openmp/%.o,$(SRCS))
+DEPS_OPENMP := $(OBJS_OPENMP:.o=.d)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CC) $(CC_FLAGS) -c $< -o $@
+CXXFLAGS_BASE := -g -Wall -Wextra -I$(INCLUDE_DIR) -MMD -MP
+CXXFLAGS_SERIAL := $(CXXFLAGS_BASE)
+CXXFLAGS_OPENMP := $(CXXFLAGS_BASE) -fopenmp -DUSE_OPENMP
 
-$(EXEC): $(OBJS)
-	$(CC) $(CC_FLAGS) $^ -o $@
+LDLIBS := -lsfml-graphics -lsfml-window -lsfml-system
+
+.PHONY: all openmp clean
+
+all: run
+
+openmp: run-openmp
+
+$(BUILD_DIR)/serial:
+	mkdir -p $(BUILD_DIR)/serial
+
+$(BUILD_DIR)/openmp:
+	mkdir -p $(BUILD_DIR)/openmp
+
+$(BUILD_DIR)/serial/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)/serial
+	$(CXX) $(CXXFLAGS_SERIAL) -c $< -o $@
+
+$(BUILD_DIR)/openmp/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)/openmp
+	$(CXX) $(CXXFLAGS_OPENMP) -c $< -o $@
+
+run: $(OBJS_SERIAL)
+	$(CXX) $^ $(LDLIBS) -o $@
+
+run-openmp: $(OBJS_OPENMP)
+	$(CXX) -fopenmp $^ $(LDLIBS) -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm $(EXEC)
+	rm -f run run-openmp
 
+-include $(DEPS_SERIAL)
+-include $(DEPS_OPENMP)

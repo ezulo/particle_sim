@@ -1,12 +1,35 @@
 # Particle Sim
 
-No idea what it's for yet, but I have some ideas
+An elastic particle simulation, with fun graphics! In progress
 
-Uses SFML v3.0.2-1 and builds with clang 20.1.8
+## Dependencies
 
-# Notes
+-   SFML v3.0.2-1 or newer
+-   clang 20.1.8 or newer
 
-* This compiles, does not work right
-* Need to use the new priority queue method (ParticleSim.cpp)
-* Add a new update method: collect all possible collisions, and pop them off the queue
+## Building
+
+For the serial profile:
+
+`make`
+
+For the multithreaded profile:
+
+`make openmp`
+
+## Running
+
+`./run` or `./run-openmp`
+
+## Cleaning
+
+`make clean`
+
+## Configuration
+
+All config variables are located in `src/config.h`. Project must be rebuilt entirely on changing.
+ 
+## Developer Notes
+
+-   OpenMP does not seem to net any performance gains (quite the contrary; the overhead is massive)
 
