@@ -1,12 +1,35 @@
 # Particle Sim
 
-No idea what it's for yet, but I have some ideas
+An elastic particle simulation, with fun graphics! In progress
 
-Uses SFML v3.0.2-1 and builds with clang 20.1.8
+## Dependencies
 
-## Multithreading
+-   SFML v3.0.2-1 or newer
+-   clang 20.1.8 or newer
+
+## Building
+
+For the serial profile:
+
+`make`
+
+For the multithreaded profile:
+
+`make openmp`
+
+## Running
+
+`./run` or `./run-openmp`
+
+## Cleaning
+
+`make clean`
+
+## Configuration
+
+All config variables are located in `src/config.h`. Project must be rebuilt entirely on changing.
  
-### OpenMP
-1. Identify where we can parallelize effort (most likely, ParticleSim class)
-1. Benchmark performance somehow
+## Developer Notes
+
+-   OpenMP does not seem to net any performance gains (quite the contrary; the overhead is massive)
 
