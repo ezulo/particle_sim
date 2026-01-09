@@ -7,4 +7,6 @@ Uses SFML v3.0.2-1 and builds with clang 20.1.8
 ## Multithreading
  
 ### OpenMP
+1. Identify where we can parallelize effort (most likely, ParticleSim class)
+1. Benchmark performance somehow
 

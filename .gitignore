@@ -1,2 +1,5 @@
 run
+run-openmp
+compile_commands.json
 target/
+.cache/
